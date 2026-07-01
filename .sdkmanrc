@@ -1,0 +1,4 @@
+# Enable auto-env with: sdk config → set sdkman_auto_env=true
+# or run `sdk env` in this directory
+java=25.0.3-amzn
+maven=3.6.3
