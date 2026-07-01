@@ -39,3 +39,19 @@ ATHENA_OUTPUT_LOCATION=s3://mi-bucket-resultados/athena/ \
 AWS_REGION=us-east-1 \
 java -jar target/aws-datalake-demo-1.0-SNAPSHOT.jar
 ```
+
+## Archivos de resultado en S3
+
+Cada ejecucion de la query escribe en `ATHENA_OUTPUT_LOCATION` un `<query-execution-id>.csv` (el
+resultado) y un `<query-execution-id>.csv.metadata` (metadata interna de Athena, tipos de columna,
+etc). Esto es propio de como funciona Athena y ocurre siempre, independientemente del `PAGE_SIZE`:
+el paginador de `AthenaQueryService` solo trocea la *lectura* del resultado via API
+(`GetQueryResults` + `NextToken`), no la escritura en S3 (que es un unico archivo por ejecucion).
+
+Recomendaciones para no acumular basura en el bucket:
+
+- Usar un prefix dedicado, ej. `s3://mi-bucket-resultados/athena/aws-datalake-demo/`, para no
+  mezclarlo con resultados de otras queries/equipos.
+- Configurar una **lifecycle policy** en ese bucket/prefix que expire los objetos a los N dias
+  (por ejemplo 7-30 dias, segun necesidad de auditoria). Esto se maneja por fuera de la app, a
+  nivel de infraestructura S3 (Terraform/CloudFormation/consola).
